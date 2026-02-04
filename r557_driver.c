@@ -1,83 +1,15 @@
 #include "r557_driver.h"
 
-/**
- * @brief  Showing data without headache with sizeofs and other stuff.
- * @param  UART_HandleTypeDef* huart
- * @param  char* Message
- * @retval int
- */
-int System_EchoViaUART(UART_HandleTypeDef* huart, char* Message) {
-	if (huart == NULL || sizeof(Message[0]) != sizeof(char)) {
-		return EINVAL;
-	}
-	if (HAL_UART_Transmit(huart, (uint8_t*)Message, strlen((const char*)Message), 100) != HAL_OK) {
-        #if DEBUG_MODE == 1
-            System_EchoViaUART(&huart1, "System_EchoViaUART: Transmitting error");
-        #endif
-		return 12; //eproto
-	}
-	return 0;
-}
-
-/**
- * @brief  Getting a control sum of array (uses for P557 fingerprint scanner).
- * @param  uint8_t* Data
- * @param  int FirstIndex
- * @param  int LastIndex
- * @retval uint16_t
- */
-uint16_t System_GetControlSum(uint8_t* Data, int FirstIndex, int LastIndex) {
-	if (sizeof(Data) == 0 || 
-			FirstIndex < 0 || 
-			LastIndex < 0) 
-	{
-		return EINVAL;
-	}
-	/* --- */
-	int Result = 0;
-	for ( ; FirstIndex <= LastIndex; FirstIndex++) {
-		Result += Data[FirstIndex];
-	}
-	return Result;
-}
-
-uint8_t FingerPrint_ShowSystemData(UART_HandleTypeDef* huart) {
-	uint16_t checksum = 0;
-	uint8_t txData[32 * (FINGERPRINT_FRAME_SIZE + 1)] = {0};
-	uint8_t rxData[32 * (FINGERPRINT_FRAME_SIZE + 1)] = {0};
-	
-	txData[0]  = FINGERPRINT_STARTCODE_BYTE0;
-	txData[1]  = FINGERPRINT_STARTCODE_BYTE1;
-	txData[2]  = FINGERPRINT_ADDR_1;
-	txData[3]  = FINGERPRINT_ADDR_2;
-	txData[4]  = FINGERPRINT_ADDR_3;
-	txData[5]  = FINGERPRINT_ADDR_4;
-	txData[6]  = 0x01;
-	txData[7]  = 0x00;
-	txData[8]  = 0x03;
-	txData[9]  = 0x0F;
-	for (int i = 6; i <= 9; i++) {
-		checksum += txData[i];
-	}
-	txData[10] = checksum >> 8;
-	txData[11] = checksum & 0x00FF;
-	if (HAL_UART_Transmit(huart, rxData, (32 * FINGERPRINT_FRAME_SIZE + 1), 250) == HAL_OK) {
-		HAL_UART_Receive(huart, rxData, (32 * FINGERPRINT_FRAME_SIZE + 1), 250);
-	};
-	uint8_t BusyState = rxData[12] & 0x00000001;
-	return BusyState;
-}
-
-uint8_t FingerPrint_PwdVfy(void) {
+uint8_t r557_pwd_vfy(UART_HandleTypeDef* huart) {
   uint16_t checksum = 0;
  	uint8_t txd[32] = {0};
 	uint8_t rxd[32] = {0};
- 	txd[0] = FINGERPRINT_STARTCODE_BYTE0;
-	txd[1] = FINGERPRINT_STARTCODE_BYTE1;
-	txd[2] = FINGERPRINT_ADDR_1;
-	txd[3] = FINGERPRINT_ADDR_2;
-	txd[4] = FINGERPRINT_ADDR_3;
-	txd[5] = FINGERPRINT_ADDR_4;
+ 	txd[0] = r557_startcode_byte0;
+	txd[1] = r557_startcode_byte1;
+	txd[2] = r557_addr_1;
+	txd[3] = r557_addr_2;
+	txd[4] = r557_addr_3;
+	txd[5] = r557_addr_4;
 	txd[6] = 0x01;
 	txd[7] = 0x00;
 	txd[8] = 0x07;
@@ -96,16 +28,16 @@ uint8_t FingerPrint_PwdVfy(void) {
   return rxd[9];
 }
 
-uint8_t FingerPrint_Empty(void) {
+uint8_t r557_empty(UART_HandleTypeDef* huart) {
 	uint16_t checksum = 0;
   uint8_t txd[32] = {0};
 	uint8_t rxd[32] = {0};
-	txd[0] = FINGERPRINT_STARTCODE_BYTE0;
-	txd[1] = 0x01;
-	txd[2] = FINGERPRINT_ADDR_1;
-	txd[3] = FINGERPRINT_ADDR_2;
-	txd[4] = FINGERPRINT_ADDR_3;
-	txd[5] = FINGERPRINT_ADDR_4;
+	txd[0] = r557_startcode_byte0;
+	txd[1] = r557_startcode_byte1;
+	txd[2] = r557_addr_1;
+	txd[3] = r557_addr_2;
+	txd[4] = r557_addr_3;
+	txd[5] = r557_addr_4;
 	txd[6] = 0x01;
 	txd[7] = 0x00;
 	txd[8] = 0x03;
@@ -120,16 +52,16 @@ uint8_t FingerPrint_Empty(void) {
 	return rxd[9];
 }
 
-uint8_t FingerPrint_GenImg(void) {
+uint8_t r557_gen_img(UART_HandleTypeDef* huart) {
 	uint16_t checksum = 0;
   	uint8_t txd[32] = {0};
 	uint8_t rxd[32] = {0};
-	txd[0] = FINGERPRINT_STARTCODE_BYTE0;
-	txd[1] = FINGERPRINT_STARTCODE_BYTE1;
-	txd[2] = FINGERPRINT_ADDR_1;
-	txd[3] = FINGERPRINT_ADDR_2;
-	txd[4] = FINGERPRINT_ADDR_3;
-	txd[5] = FINGERPRINT_ADDR_4;
+	txd[0] = r557_startcode_byte0;
+	txd[1] = r557_startcode_byte1;
+	txd[2] = r557_addr_1;
+	txd[3] = r557_addr_2;
+	txd[4] = r557_addr_3;
+	txd[5] = r557_addr_4;
 	txd[6] = 0x01;
 	txd[7] = 0x00;
 	txd[8] = 0x03;
@@ -144,16 +76,16 @@ uint8_t FingerPrint_GenImg(void) {
 	return 0;
 }
 
-uint8_t FingerPrint_Img2Tz(uint8_t buf) {
+uint8_t r557_img_2_tz(UART_HandleTypeDef* huart, uint8_t buf) {
 	uint16_t checksum = 0;
   	uint8_t txd[32] = {0};
 	uint8_t rxd[32] = {0};
-	txd[0] = FINGERPRINT_STARTCODE_BYTE0;
-	txd[1] = FINGERPRINT_STARTCODE_BYTE1;
-	txd[2] = FINGERPRINT_ADDR_1;
-	txd[3] = FINGERPRINT_ADDR_2;
-	txd[4] = FINGERPRINT_ADDR_3;
-	txd[5] = FINGERPRINT_ADDR_4;
+	txd[0] = r557_startcode_byte0;
+	txd[1] = r557_startcode_byte1;
+	txd[2] = r557_addr_1;
+	txd[3] = r557_addr_2;
+	txd[4] = r557_addr_3;
+	txd[5] = r557_addr_4;
 	txd[6] = 0x01;
 	txd[7] = 0x00;
 	txd[8] = 0x04;
@@ -174,16 +106,16 @@ uint8_t FingerPrint_Img2Tz(uint8_t buf) {
 	return 0;
 }
 
-uint8_t FingerPrint_RegModel(void) {
+uint8_t r557_reg_model(UART_HandleTypeDef* huart) {
 	uint16_t checksum = 0;
   	uint8_t txd[32] = {0};
 	uint8_t rxd[32] = {0};
-	txd[0] = FINGERPRINT_STARTCODE_BYTE0;
-	txd[1] = FINGERPRINT_STARTCODE_BYTE1;
-	txd[2] = FINGERPRINT_ADDR_1;
-	txd[3] = FINGERPRINT_ADDR_2;
-	txd[4] = FINGERPRINT_ADDR_3;
-	txd[5] = FINGERPRINT_ADDR_4;
+	txd[0] = r557_startcode_byte0;
+	txd[1] = r557_startcode_byte1;
+	txd[2] = r557_addr_1;
+	txd[3] = r557_addr_2;
+	txd[4] = r557_addr_3;
+	txd[5] = r557_addr_4;
 	txd[6] = 0x01;
 	txd[7] = 0x00;
 	txd[8] = 0x03;
@@ -198,43 +130,16 @@ uint8_t FingerPrint_RegModel(void) {
 	return rxd[9];
 }
 
-/*uint8_t FingerPrint_Store(uint16_t BufferId, uint16_t PageID) {
-	uint16_t checksum = 0;
-  	uint8_t txd[32] = {0};
-	uint8_t rxd[32] = {0};
-	txd[0] = FINGERPRINT_STARTCODE_BYTE0;
-	txd[1] = FINGERPRINT_STARTCODE_BYTE1;
-	txd[2] = FINGERPRINT_ADDR_1;
-	txd[3] = FINGERPRINT_ADDR_2;
-	txd[4] = FINGERPRINT_ADDR_3;
-	txd[5] = FINGERPRINT_ADDR_4;
-	txd[6] = 0x01;
-	txd[7] = 0x00;
-	txd[8] = 0x06;
-	txd[9] = 0x06;
-	txd[10] = BufferId;
-	txd[11] = PageID >> 8;
-	txd[12] = PageID & 0x00FF;
-	for(uint8_t  i = 6 ; i <= 12; i++) {
-		checksum+=txd[i];
-	}
-	txd[13] = checksum >> 8;
-	txd[14] = checksum & 0x00FF;
-	HAL_UART_Transmit(&uart_port, txd, 32, 100);
-	HAL_UART_Receive(&uart_port, rxd, 32, 100);
-	return 0;
-}*/
-
-int FingerPrint_Search(uint8_t buf, uint16_t StartPage, uint16_t PageNum) {
+uint8_t r557_search(uint8_t buf, UART_HandleTypeDef* huart) {
 	uint16_t checksum = 0;
   uint8_t txd[32] = {0};
 	uint8_t rxd[32] = {0};
-	txd[0] = FINGERPRINT_STARTCODE_BYTE0;
-	txd[1] = FINGERPRINT_STARTCODE_BYTE1;
-	txd[2] = FINGERPRINT_ADDR_1;
-	txd[3] = FINGERPRINT_ADDR_2;
-	txd[4] = FINGERPRINT_ADDR_3;
-	txd[5] = FINGERPRINT_ADDR_4;
+	txd[0] = r557_startcode_byte0;
+	txd[1] = r557_startcode_byte1;
+	txd[2] = r557_addr_1;
+	txd[3] = r557_addr_2;
+	txd[4] = r557_addr_3;
+	txd[5] = r557_addr_4;
 	txd[6] = 0x01;
 	txd[7] = 0x00;
 	txd[8] = 0x08;
@@ -261,16 +166,16 @@ void FingerPrint_InitDelay(void) {
   HAL_Delay(1000);
 }
 
-uint8_t FingerPrint_Store(int current_page) {
+uint8_t r557_store(UART_HandleTypeDef* huart, uint8_t current_page) {
 	uint16_t checksum = 0;
   uint8_t txd[32] = {0};
 	uint8_t rxd[32] = {0};
-	txd[0] = FINGERPRINT_STARTCODE_BYTE0;
-  txd[1] = FINGERPRINT_STARTCODE_BYTE1;
-  txd[2] = FINGERPRINT_ADDR_1;
-  txd[3] = FINGERPRINT_ADDR_2;
-  txd[4] = FINGERPRINT_ADDR_3;
-  txd[5] = FINGERPRINT_ADDR_4;
+	txd[0] = r557_startcode_byte0;
+  txd[1] = r557_startcode_byte1;
+  txd[2] = r557_addr_1;
+  txd[3] = r557_addr_2;
+  txd[4] = r557_addr_3;
+  txd[5] = r557_addr_4;
   txd[6] = 0x01;
   txd[7] = 0x00;
   txd[8] = 0x06;
@@ -288,15 +193,42 @@ uint8_t FingerPrint_Store(int current_page) {
 	return rxd[9];
 }
 
+uint8_t r557_showsystemdata(UART_HandleTypeDef* huart) {
+	uint16_t checksum = 0;
+	uint8_t txData[32 * (r557_frame_size + 1)] = {0};
+	uint8_t rxData[32 * (r557_frame_size + 1)] = {0};
+	
+	txData[0]  = r557_startcode_byte0;
+	txData[1]  = r557_startcode_byte1;
+	txData[2]  = r557_addr_1;
+	txData[3]  = r557_addr_2;
+	txData[4]  = r557_addr_3;
+	txData[5]  = r557_addr_4;
+	txData[6]  = 0x01;
+	txData[7]  = 0x00;
+	txData[8]  = 0x03;
+	txData[9]  = 0x0F;
+	for (int i = 6; i <= 9; i++) {
+		checksum += txData[i];
+	}
+	txData[10] = checksum >> 8;
+	txData[11] = checksum & 0x00FF;
+	if (HAL_UART_Transmit(huart, rxData, (32 * r557_frame_size + 1), 250) == HAL_OK) {
+		HAL_UART_Receive(huart, rxData, (32 * r557_frame_size + 1), 250);
+	};
+	uint8_t BusyState = rxData[12] & 0x00000001;
+	return BusyState;
+}
+
 uint8_t GetBusyState(void) {
 	uint16_t checksum = 0;
 	uint8_t txData[32] = {0};
-	txData[0] = FINGERPRINT_STARTCODE_BYTE0;
-	txData[1] = FINGERPRINT_STARTCODE_BYTE1;
-	txData[2] = FINGERPRINT_ADDR_1;
-	txData[3] = FINGERPRINT_ADDR_2;
-	txData[4] = FINGERPRINT_ADDR_3;
-	txData[5] = FINGERPRINT_ADDR_4;
+	txData[0] = r557_startcode_byte0;
+	txData[1] = r557_startcode_byte1;
+	txData[2] = r557_addr_1;
+	txData[3] = r557_addr_2;
+	txData[4] = r557_addr_3;
+	txData[5] = r557_addr_4;
 	txData[6] = 0x01;
 	txData[7] = 0x00;
 	txData[8] = 0x03;
