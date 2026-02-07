@@ -1,6 +1,17 @@
+/**
+ * @file r557_driver.h
+ * @author Mike (michael.a.strangewood@gmail.com)
+ * @version 0.2
+ * @date 2026-02-04
+ * 
+ */
+
+/*--Includes-----------------------------------------------------------------*/
+
 #include "r557_driver_conf.h"
 
-/* error codes */
+/*--Error codes--------------------------------------------------------------*/
+
 #define r557_status_ok 0x00
 #define r557_status_package_recieve_err 0x01
 #define r557_status_no_finger 0x02
@@ -24,32 +35,34 @@
 #define r557_status_add_code 0x20
 #define r557_status_password_verify 0x21
 
-/* commands codes */
-#define r557_cmd_genimg 0x01
-#define r557_cmd_img2tz 0x02
-#define r557_cmd_match 0x03
-#define r557_cmd_search 0x04
-#define r557_cmd_regmodel 0x05
-#define r557_cmd_store 0x06
-#define r557_cmd_loadchar 0x07
-#define r557_cmd_upchar 0x08
-#define r557_cmd_downchr 0x09
-#define r557_cmd_upimage 0x0A
-#define r557_cmd_downimage 0x0B
-#define r557_cmd_deletechar 0x0C
-#define r557_cmd_empty 0x0D
-#define r557_cmd_setsyspara 0x0E
-#define r557_cmd_readsyspara 0x0F
-#define r557_cmd_setpwd 0x12
-#define r557_cmd_vfypwd 0x13
-#define r557_cmd_getrandomcode 0x14
-#define r557_cmd_setadder 0x15
-#define r557_cmd_control 0x17
-#define r557_cmd_writenotepad 0x18
-#define r557_cmd_readnotepad 0x19
-#define r557_cmd_templatenum 0x1D
+/*--Command codes------------------------------------------------------------*/
 
-/* other defines */
+#define r557_cmd_genimg (uint8_t)0x01
+#define r557_cmd_img2tz (uint8_t)0x02
+#define r557_cmd_match (uint8_t)0x03
+#define r557_cmd_search (uint8_t)0x04
+#define r557_cmd_regmodel (uint8_t)0x05
+#define r557_cmd_store (uint8_t)0x06
+#define r557_cmd_loadchar (uint8_t)0x07
+#define r557_cmd_upchar (uint8_t)0x08
+#define r557_cmd_downchr (uint8_t)0x09
+#define r557_cmd_upimage (uint8_t)0x0A
+#define r557_cmd_downimage (uint8_t)0x0B
+#define r557_cmd_deletechar (uint8_t)0x0C
+#define r557_cmd_empty (uint8_t)0x0D
+#define r557_cmd_setsyspara (uint8_t)0x0E
+#define r557_cmd_readsyspara (uint8_t)0x0F
+#define r557_cmd_setpwd (uint8_t)0x12
+#define r557_cmd_vfypwd (uint8_t)0x13
+#define r557_cmd_getrandomcode (uint8_t)0x14
+#define r557_cmd_setadder (uint8_t)0x15
+#define r557_cmd_control (uint8_t)0x17
+#define r557_cmd_writenotepad (uint8_t)0x18
+#define r557_cmd_readnotepad (uint8_t)0x19
+#define r557_cmd_templatenum (uint8_t)0x1D
+
+/*--Other defines------------------------------------------------------------*/
+
 #define r557_startcode_byte0 0xEF
 #define r557_startcode_byte1 0x01
 #define r557_commandpacket 0x1
@@ -58,42 +71,115 @@
 #define r557_enddatapacket 0x8
 #define r557_timeout 0xFF
 #define r557_badpacket 0xFE
-#define r557_frame_size 0
+#ifndef r557_frame_size
+    #define r557_frame_size 0
+#endif
 
-/* addresses */
-#define r557_addr_1 0xFF
-#define r557_addr_2 0xFF
-#define r557_addr_3 0xFF
-#define r557_addr_4 0xFF
+/*--R557 package static values-----------------------------------------------*/
 
-extern uint32_t scanner_irq_flag;
-extern uint8_t current_template_count;
-extern char mesg[32];
+#define r557_header_1st_byte (uint8_t)0xEF
+#define r557_header_2d_byte (uint8_t)0x01
+#define r557_device_addr_1 (uint8_t)0xFF
+#define r557_device_addr_2 (uint8_t)0xFF
+#define r557_device_addr_3 (uint8_t)0xFF
+#define r557_device_addr_4 (uint8_t)0xFF
+#define r557_trasnmitting_package_id (uint8_t)0x01
+#define r557_receiving_package_id (uint8_t)0x07
+/* no define for package's lenth */
+/* and next comes user data */
 
+/*--Derivative definitions---------------------------------------------------*/
+
+#define package_size (32 * (r557_frame_size + 1))
+
+/*--Function headers---------------------------------------------------------*/
+
+/**
+ * @brief Weak implementation of debug_callback
+ * 
+ * @param msg 
+ */
+__weak void debug_callback(const uint8_t* msg);
+
+/**
+ * @brief Function for initialize the transmitting data package
+ * 
+ * @param cmd 
+ * @param args
+ */
+static void r557_init_data_package(uint8_t* cmd, uint8_t* args);
+
+/**
+ * @brief Function for calling the R557 command what's name is 'genimg'. See
+ * manual for more details
+ * 
+ * @param huart 
+ * @return uint8_t 
+ */
 uint8_t r557_gen_img(UART_HandleTypeDef* huart);
+
+/**
+ * @brief Function for calling the R557 command what's name is 'pwdfvy'. See
+ * manual for more details
+ * 
+ * @param huart 
+ * @return uint8_t 
+ */
 uint8_t r557_pwd_vfy(UART_HandleTypeDef* huart);
+
+/**
+ * @brief Function for calling the R557 command what's name is 'empty'. See
+ * manual for more details
+ * 
+ * @param huart 
+ * @return uint8_t 
+ */
 uint8_t r557_empty(UART_HandleTypeDef* huart);
+
+/**
+ * @brief Function for calling the R557 command what's name is 'img2tz'. See
+ * manual for more details
+ * 
+ * @param huart 
+ * @param buf 
+ * @return uint8_t 
+ */
 uint8_t r557_img_2_tz(UART_HandleTypeDef* huart, uint8_t buf);
+
+/**
+ * @brief Function for calling the R557 command what's name is 'regmodel'. See
+ * manual for more details
+ * 
+ * @param huart 
+ * @return uint8_t 
+ */
 uint8_t r557_reg_model(UART_HandleTypeDef* huart);
+
+/**
+ * @brief Function for calling the R557 command what's name is 'search'. See
+ * manual for more details
+ * 
+ * @param huart 
+ * @param buf 
+ * @return uint8_t 
+ */
 uint8_t r557_search(UART_HandleTypeDef* huart, uint8_t buf);
+
+/**
+ * @brief Function for calling the R557 command what's name is 'showsysdata'. See
+ * manual for more details
+ * 
+ * @param huart 
+ * @return uint8_t 
+ */
 uint8_t r557_showsystemdata(UART_HandleTypeDef* huart);
+
+/**
+ * @brief Function for calling the R557 command what's name is 'store'. See
+ * manual for more details
+ * 
+ * @param huart 
+ * @param current_page 
+ * @return uint8_t 
+ */
 uint8_t r557_store(UART_HandleTypeDef* huart, uint8_t current_page);
-
-int FingerPrint_RecieveMessage(uint16_t rxData[(32 * (r557_frame_size + 1))]);
-int FingerPrint_RecieveDebugMessages(uint16_t* rxDebugData);
-uint8_t FingerPrint_GenImg(void);
-uint8_t FingerPrint_PwdVfy(void);
-uint8_t FingerPrint_Empty(void);
-uint8_t FingerPrint_GenImg(void);
-uint8_t FingerPrint_Img2Tz(uint8_t buf);
-uint8_t FingerPrint_RegModel(void);
-//uint8_t FingerPrint_Store(uint16_t BufferId, uint16_t PageID);
-int FingerPrint_Search(uint8_t buf, uint16_t StartPage, uint16_t PageNum);
-uint8_t FingerPrint_ShowSystemData(UART_HandleTypeDef* huart);
-
-uint16_t System_GetControlSum(uint8_t* Data, int StartIndex, int StopIndex);
-int System_EchoViaUART(UART_HandleTypeDef* huart, char* Message);
-
-uint8_t GetBusyState(void);
-uint8_t FingerPrint_Store(int current_page);
-void FingerPrint_InitDelay(void);
