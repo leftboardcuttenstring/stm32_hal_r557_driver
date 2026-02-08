@@ -1,7 +1,7 @@
 /**
  * @file r557_driver.h
  * @author Mike (michael.a.strangewood@gmail.com)
- * @version 0.2
+ * @version 1.0
  * @date 2026-02-04
  * 
  */
@@ -90,7 +90,7 @@
 
 /*--Derivative definitions---------------------------------------------------*/
 
-#define package_size (32 * (r557_frame_size + 1))
+#define receiving_package_size (32 * (r557_frame_size + 1))
 
 /*--Function headers---------------------------------------------------------*/
 
@@ -107,79 +107,12 @@ __weak void debug_callback(const uint8_t* msg);
  * @param cmd 
  * @param args
  */
-static void r557_init_data_package(uint8_t* cmd, uint8_t* args);
+static void r557_init_data_package(uint8_t* transmit_data, uint8_t cmd, uint8_t* args, uint16_t args_len);
 
 /**
- * @brief Function for calling the R557 command what's name is 'genimg'. See
- * manual for more details
+ * @brief Function for transmitting the command
  * 
- * @param huart 
- * @return uint8_t 
+ * @param cmd 
+ * @param args 
  */
-uint8_t r557_gen_img(UART_HandleTypeDef* huart);
-
-/**
- * @brief Function for calling the R557 command what's name is 'pwdfvy'. See
- * manual for more details
- * 
- * @param huart 
- * @return uint8_t 
- */
-uint8_t r557_pwd_vfy(UART_HandleTypeDef* huart);
-
-/**
- * @brief Function for calling the R557 command what's name is 'empty'. See
- * manual for more details
- * 
- * @param huart 
- * @return uint8_t 
- */
-uint8_t r557_empty(UART_HandleTypeDef* huart);
-
-/**
- * @brief Function for calling the R557 command what's name is 'img2tz'. See
- * manual for more details
- * 
- * @param huart 
- * @param buf 
- * @return uint8_t 
- */
-uint8_t r557_img_2_tz(UART_HandleTypeDef* huart, uint8_t buf);
-
-/**
- * @brief Function for calling the R557 command what's name is 'regmodel'. See
- * manual for more details
- * 
- * @param huart 
- * @return uint8_t 
- */
-uint8_t r557_reg_model(UART_HandleTypeDef* huart);
-
-/**
- * @brief Function for calling the R557 command what's name is 'search'. See
- * manual for more details
- * 
- * @param huart 
- * @param buf 
- * @return uint8_t 
- */
-uint8_t r557_search(UART_HandleTypeDef* huart, uint8_t buf);
-
-/**
- * @brief Function for calling the R557 command what's name is 'showsysdata'. See
- * manual for more details
- * 
- * @param huart 
- * @return uint8_t 
- */
-uint8_t r557_showsystemdata(UART_HandleTypeDef* huart);
-
-/**
- * @brief Function for calling the R557 command what's name is 'store'. See
- * manual for more details
- * 
- * @param huart 
- * @param current_page 
- * @return uint8_t 
- */
-uint8_t r557_store(UART_HandleTypeDef* huart, uint8_t current_page);
+void r557_transmit_command(uint8_t cmd, uint8_t* args, uint16_t args_len);

@@ -40,7 +40,7 @@ extern UART_HandleTypeDef huart1;
 
 #define r557_frame_size 0
 #define uart_timeout 100
-#define __debug
+#define __debug 0
 
 /*---------------------------------------------------------------------------*/
 
